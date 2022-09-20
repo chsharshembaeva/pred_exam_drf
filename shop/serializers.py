@@ -27,13 +27,14 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = "__all__"
         read_only_fields = ['profile', 'item']
 
-    def create(self, validated_data):
-        profile = Profile.objects.get(id=self.context['request'].user.id)
-        item = get_object_or_404(Item, id=validated_data['item_id'])
-        order = Order.objects.create(
-            item=item,
-            profile=profile
-            )
-        order.save()
-        return order
+    #
+    # def create(self, validated_data):
+    #     profile = Profile.objects.get(id=self.context['request'].user.id)
+    #     item = get_object_or_404(Item, id=validated_data['item_id'])
+    #     order = Order.objects.create(
+    #         item=item,
+    #         profile=profile
+    #         )
+    #     order.save()
+    #     return order
 

@@ -1,10 +1,3 @@
-from django.db import IntegrityError
-from django.shortcuts import render
-from rest_framework import status, generics
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, get_object_or_404
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 
@@ -12,8 +5,7 @@ from .permissions import SenderPermission, ItemPermission, OrderPermission
 
 from .models import Category, Item, Order
 from .serializers import CategorySerializer, ItemSerializer, OrderSerializer
-from account.models import User, Profile
-from django.shortcuts import render
+
 
 
 class CategoryListCreateAPIView(ListCreateAPIView):
@@ -54,11 +46,21 @@ class ItemRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     permission_classes = [ItemPermission, ]
 
 
-class ItemOrder(generics.CreateAPIView):
+class OrderListCreateAPIView(ListCreateAPIView):
     queryset = Order.objects.all()
+    serializer_class = OrderSerializer
     authentication_classes = [SessionAuthentication, TokenAuthentication]
     permission_classes = [OrderPermission, ]
-    serializer_class = OrderSerializer
+
+    def get_queryset(self):
+        print(self.kwargs)
+        return self.queryset.filter(item_id=self.kwargs['item_id'])
+
+    def perform_create(self, serializer):
+        serializer.save(
+            profile=self.request.user.profile,
+            item=get_object_or_404(Item, id=self.kwargs['item_id'])
+        )
 
     # def perform_create(self, serializer):
     #
@@ -77,10 +79,11 @@ class ItemOrder(generics.CreateAPIView):
     #     return order
 
 
-    # def get(self, request, item_id):
-    #     item = get_object_or_404(Item, id=item_id)
-    #     order = Order.objects.create(item=item, profile=request.user.profile)
-    #     data = {"message": f"Item {item_id} has been ordered by {request.user.profile}"}
-    #     return Response(data, status=status.HTTP_201_CREATED)
+class OrderRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    permission_classes = [OrderPermission, ]
+
 
 
